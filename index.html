@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Party Policies</title>
+    <style media="screen">
+      body {
+        padding: 0;
+        margin: 0;
+        font-family: Arial, sans-serif;
+      }
+      h3 {
+        padding: 0 12px;
+      }
+      ol {
+        padding: 0;
+      }
+      ol li {
+        list-style: none;
+        color: #fff;
+        padding: 12px;
+        margin-bottom: 1px;
+      }
+      a {
+        color: #fff;
+        text-decoration: none;
+        display: block;
+      }
+      .party-policies {
+        float: left;
+        width: 33%;
+        margin-right: 1px;
+        clear: right;
+      }
+      .policy-name {
+        font-size: 16px;
+        padding-right: 20px;
+      }
+      .policy-percent {
+        float: right;
+        padding-top: 2px;
+      }
+      .low {
+        background-color: #d9534f;
+      }
+      .low:hover {
+        background-color: #c9302c;
+      }
+      .mid {
+        background-color: #f0ad4e;
+      }
+      .mid:hover {
+        background-color: #ec971f;
+      }
+      .high {
+        background-color: #5cb85c;
+      }
+      .high:hover {
+        background-color: #449d44;
+      }
+      .controls {
+        width: 100%;
+        margin: 0 auto;
+        padding: 24px;
+        font-size: 18px;
+        position: fixed;
+        background-color: #fff;
+      }
+      #content {
+        padding-top: 50px;
+      }
+      #percent-filter {
+        display: inline;
+      }
+    </style>
+    <script type="text/javascript" src="policyData.js"></script>
+    <script type="text/javascript" src="categories.js"></script>
+    <script
+      src="http://code.jquery.com/jquery-3.2.1.min.js"
+      integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+      crossorigin="anonymous"></script>
+  </head>
+  <body>
+  <div class="controls">
+    <div id="percent-filter">
+      low <input id="lowCheckBox" type="checkbox" checked="checked">
+      mid <input id="midCheckBox" type="checkbox" checked="checked"> high <input id="highCheckBox" type="checkbox" checked="checked">
+    </div>
+    – category <select id="policy-category"></select>
+  </div>
+  <div id="content">
+    <script type="text/javascript">
+
+      var html = ''
+      var excludedParties = ['SNP','PC','SF','Speaker','Independent','DUP','Green'];
+
+      for (var party in policyData) {
+        if (policyData.hasOwnProperty(party) && !excludedParties.includes(party)) {
+          html += '<div class="party-policies"><h3>' + party + '</h3><ol>';
+          var policies = policyData[party].policies;
+          policies.sort(function(a, b) {
+            var nameA=a.name.toLowerCase(), nameB=b.name.toLowerCase();
+             if (nameA < nameB)
+              return -1;
+             if (nameA > nameB)
+              return 1;
+             return 0;
+          });
+          for (var i = 0; i < policies.length; i++) {
+            var classLevel = 'high';
+            var category = '';
+            if(policies[i].percent < 34){
+              classLevel = 'low';
+            } else if (policies[i].percent < 67) {
+              classLevel = 'mid';
+            }
+            if(categoryMap[policies[i].name.trim()]){
+              category = categoryMap[policies[i].name.trim()];
+            }
+            html += '<li class="' + classLevel + '" data-category="' + category + '"><a href="' + policies[i].link + '"><span class="policy-percent"> ' + policies[i].percent + '</span><span class="policy-name">' + policies[i].name + '</span></a></li>';
+          }
+          policies = [];
+          html += '</ol></div>'
+        }
+      }
+      $('#content').html(html);
+
+      var categoryHtml = '<option value="">All</option>'
+      for (var i = 0; i < categories.length; i++) {
+        categoryHtml += '<option value="' + categories[i] + '">' + categories[i] + '</option>';
+      }
+      var policySelect = $('#policy-category');
+
+      policySelect.html(categoryHtml);
+      policySelect.on('change', function(){
+        applyFilters();
+      });
+
+      $('#percent-filter').on('click', function(){
+        applyFilters();
+      });
+
+      function filterByCategory(){
+        var category = $('#policy-category')[0].value;
+        if(category && category !== ''){
+          $('li').each(function(){
+            if($(this).attr('data-category') !== category){
+              $(this).hide();
+            }
+          });
+        }
+      }
+
+      function filterByPercent(){
+        if($('#lowCheckBox').is(':checked')){
+          $('.low').show();
+        } else {
+          $('.low').hide();
+        }
+        if($('#midCheckBox').is(':checked')){
+          $('.mid').show();
+        } else {
+          $('.mid').hide();
+        }
+        if($('#highCheckBox').is(':checked')){
+          $('.high').show();
+        } else {
+          $('.high').hide();
+        }
+      }
+
+      function applyFilters(){
+        $('li').each(function(){
+            $(this).show();
+        });
+        filterByPercent();
+        filterByCategory();
+      }
+    </script>
+  </div>
+  </body>
+</html>
